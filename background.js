@@ -1,6 +1,7 @@
 const NPR = "*://one.npr.org/*";
 var story_url = "";
-
+const colors = ["#181818", "#393939", "#326AC9", "#84AFEA", "#FA381C", "#D11F15"];
+var didFirstRun = false;
 function genericOnClick(info, tab) {
 	var speed = parseFloat(info.menuItemId.split('-')[2]);
 	chrome.storage.sync.set({'speed': speed});
@@ -15,20 +16,21 @@ chrome.storage.sync.get({'speed': 1}, function(items) {
 	}
 });
 
-
-
 chrome.browserAction.onClicked.addListener(function(tab){
-	if (tab.url.indexOf("one.npr.org") != -1) {
-		alert("Right click on the icon to set playback speed")
-	} else {
-		runOnNprTab(function(tabId){ 
-			if (tabId) {
-				chrome.tabs.sendMessage(tabId, {"action": "playpause"});
-			} else {
-				chrome.tabs.create({"pinned": true, "url" : "http://one.npr.org/"});
-			}
-		});
-	}
+	chrome.browserAction.setIcon({"path":"img/favicon-32x32.png"});
+
+	if (tab.url.indexOf("one.npr.org") != -1 && !didFirstRun) {
+		didFirstRun = true;
+		alert("Right click on the toolbar icon or NPR page to set playback speed");
+	} 
+
+	runOnNprTab(function(tabId){ 
+		if (tabId) {
+			chrome.tabs.sendMessage(tabId, {"action": "playpause"});
+		} else {
+			chrome.tabs.create({"pinned": true, "url" : "http://one.npr.org/"});
+		}
+	});
 });
 
 var runOnNprTab = function(callback) {
@@ -42,11 +44,11 @@ var runOnNprTab = function(callback) {
 };
 
 chrome.runtime.onInstalled.addListener(function() {
-  console.log("Installed.");
-
-  // localStorage is persisted, so it's a good place to keep state that you
-  // need to persist across page reloads.
-  localStorage.counter = 1;
+	if (!localStorage.installed) {
+		// persisted to avoid extension update or Chrome update cases
+		localStorage.installed = true;
+		alert("Click on the toolbar icon to launch NPR one player and play / pause. Right click on the toolbar icon or NPR page to set playback speed.");
+	}
   
 });
 
@@ -63,10 +65,10 @@ chrome.runtime.onMessage.addListener(function(msg, _, sendResponse) {
 		chrome.notifications.create("npr-one", msg.options);
 	}
 	else if (msg.action == "onplay") {
-		
+		chrome.browserAction.setIcon({"path":"img/favicon-32x32-pause.png"});
 	}
 	else if (msg.action == "onpause") {
-		
+		chrome.browserAction.setIcon({"path":"img/favicon-32x32-play.png"});
 	}
 });
 

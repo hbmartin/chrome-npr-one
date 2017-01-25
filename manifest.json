@@ -1,7 +1,7 @@
 {
   "name": "NPR one",
   "description": "NPRone : autoplay, speed up audio, and more",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "background": { "scripts": ["background.js"] },
   "permissions": ["storage", "contextMenus", "alarms", "tabs", "background", "notifications", "*://*.npr.org/*"],
   "web_accessible_resources":["background.js"],

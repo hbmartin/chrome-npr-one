@@ -109,3 +109,10 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 
 player.onplay = function() { chrome.runtime.sendMessage({"action":"onplay"}) };
 player.onpause = function() { chrome.runtime.sendMessage({"action":"onpause"}) };
+
+// let background.js know where to find us
+chrome.runtime.sendMessage({"action":"setTabId"});
+
+window.onbeforeunload = function() {
+	chrome.runtime.sendMessage({"action":"clearTabId"});
+};

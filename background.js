@@ -1,5 +1,6 @@
 const NPR = "*://one.npr.org/*";
 var story_url = "";
+var nprTabId;
 const colors = ["#181818", "#393939", "#326AC9", "#84AFEA", "#FA381C", "#D11F15"];
 var didFirstRun = false;
 function genericOnClick(info, tab) {
@@ -19,29 +20,28 @@ chrome.storage.sync.get({'speed': 1}, function(items) {
 chrome.browserAction.onClicked.addListener(function(tab){
 	chrome.browserAction.setIcon({"path":"img/favicon-32x32.png"});
 
-	if (tab.url.indexOf("one.npr.org") != -1 && !didFirstRun) {
+	if (tab.url && tab.url.indexOf("one.npr.org") != -1 && !didFirstRun) {
 		didFirstRun = true;
 		alert("Right click on the toolbar icon or NPR page to set playback speed");
 	} 
 
 	runOnNprTab(function(tabId){ 
 		if (tabId) {
-			chrome.tabs.sendMessage(tabId, {"action": "playpause"});
+			try { chrome.tabs.sendMessage(tabId, {"action": "playpause"}) }
+			catch (e) {
+				// is this the best way to catch non-existent tab?
+				console.log(e);
+				openNprTab();
+			}
 		} else {
-			chrome.tabs.create({"pinned": true, "url" : "http://one.npr.org/"});
+			openNprTab();
 		}
 	});
 });
 
-var runOnNprTab = function(callback) {
-	chrome.tabs.query({"url":NPR}, function(tabs){
-		if (tabs && tabs.length > 0) {
-			callback(tabs[0].id);
-		} else {
-			callback(null);
-		}
-	});
-};
+var openNprTab = function() { chrome.tabs.create({"pinned": true, "url" : "http://one.npr.org/"}) };
+
+var runOnNprTab = callback => { callback(nprTabId) };
 
 chrome.runtime.onInstalled.addListener(function() {
 	if (!localStorage.installed) {
@@ -52,7 +52,7 @@ chrome.runtime.onInstalled.addListener(function() {
   
 });
 
-chrome.runtime.onMessage.addListener(function(msg, _, sendResponse) {
+chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
 	if (msg.action == "notification") {
 		msg.options.iconUrl = "img/favicon-192x192-padded.png";
 		msg.options.buttons = [{"title":"Next ▶▶"}];
@@ -69,6 +69,13 @@ chrome.runtime.onMessage.addListener(function(msg, _, sendResponse) {
 	}
 	else if (msg.action == "onpause") {
 		chrome.browserAction.setIcon({"path":"img/favicon-32x32-play.png"});
+	}
+	else if (msg.action == "setTabId") {
+		nprTabId = sender.tab.id;
+	}
+	else if (msg.action == "clearTabId") {
+		nprTabId = null;
+		chrome.browserAction.setIcon({"path":"img/favicon-32x32.png"});
 	}
 });
 

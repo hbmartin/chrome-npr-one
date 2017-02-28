@@ -39,9 +39,13 @@ var onNewTrack = function() {
 		startedPlay = true;
 		$pp();
 	}
+
 	// make sure we didn't unset the playback rate
 	setPlaybackRate();
-	
+
+	// let background.js know where to find us
+	chrome.runtime.sendMessage({"action":"setTabId"});
+
 	// notification builder
 	var story = document.getElementsByTagName('article');
 	if (story.length > 0) {

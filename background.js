@@ -11,7 +11,6 @@ function genericOnClick(info, tab) {
 
 var speeds = [0.75, 1.00, 1.25, 1.50, 1.75, 2.00];
 chrome.storage.sync.get({'speed': 1}, function(items) {
-	console.log(items.speed);
 	for (let s of speeds) {
 	  chrome.contextMenus.create({"title": (s.toFixed(2) + "×"), "id": "npr-playback-"+s, "checked": s==items.speed, "type":"radio", "contexts":["page","selection","browser_action","page_action"], "onclick": genericOnClick, "documentUrlPatterns":[NPR]});
 	}
